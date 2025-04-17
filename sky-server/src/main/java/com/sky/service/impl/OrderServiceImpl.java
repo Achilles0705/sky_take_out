@@ -28,6 +28,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class OrderServiceImpl implements OrderService {
@@ -269,20 +270,20 @@ public class OrderServiceImpl implements OrderService {
         // 根据订单id查询订单详细表
         List<OrderDetail> orderDetailList = orderDetailMapper.getByOrderId(id);
 
-        //把查到的订单详细表数据，复制到购物车表
-        for (OrderDetail orderDetail : orderDetailList) {
+        // 将订单详情对象转换为购物车对象
+        List<ShoppingCart> shoppingCartList = orderDetailList.stream().map(x -> {
             ShoppingCart shoppingCart = new ShoppingCart();
-            shoppingCart.setName(orderDetail.getName());
+
+            // 将原订单详情里面的菜品信息重新复制到购物车对象中
+            BeanUtils.copyProperties(x, shoppingCart, "id");
             shoppingCart.setUserId(BaseContext.getCurrentId());
-            shoppingCart.setDishId(orderDetail.getDishId());
-            shoppingCart.setSetmealId(orderDetail.getSetmealId());
-            shoppingCart.setDishFlavor(orderDetail.getDishFlavor());
-            shoppingCart.setNumber(orderDetail.getNumber());
-            shoppingCart.setAmount(orderDetail.getAmount());
-            shoppingCart.setImage(orderDetail.getImage());
             shoppingCart.setCreateTime(LocalDateTime.now());
-            shoppingCartMapper.insert(shoppingCart);
-        }
+
+            return shoppingCart;
+        }).collect(Collectors.toList());
+
+        // 将购物车对象批量添加到数据库
+        shoppingCartMapper.insertBatch(shoppingCartList);
 
     }
 
