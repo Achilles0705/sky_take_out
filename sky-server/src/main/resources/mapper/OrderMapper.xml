@@ -42,4 +42,13 @@
         where id = #{id}
     </update>
 
+    <select id="pageQuery" resultType="com.sky.entity.Orders">
+        select * from orders
+        <where>
+            <if test="status != null">
+                and status = #{status}
+            </if>
+        </where>
+    </select>
+
 </mapper>
