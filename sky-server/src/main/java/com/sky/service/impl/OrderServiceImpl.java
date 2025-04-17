@@ -79,6 +79,12 @@ public class OrderServiceImpl implements OrderService {
         orders.setPhone(addressBook.getPhone());
         orders.setConsignee(addressBook.getConsignee());
         orders.setUserId(userId);
+        orders.setAddress(addressBook.getDetail());
+        //把微信小程序用户名设置到订单对象中
+        orders.setUserName(userMapper.getById(userId).getName());
+        orders.setTablewareStatus(ordersSubmitDTO.getTablewareStatus());
+        orders.setTablewareNumber(ordersSubmitDTO.getTablewareNumber());
+        orders.setDeliveryStatus(ordersSubmitDTO.getDeliveryStatus());
 
         orderMapper.insert(orders);
 
@@ -120,12 +126,14 @@ public class OrderServiceImpl implements OrderService {
         User user = userMapper.getById(userId);
 
         //调用微信支付接口，生成预支付交易单
-        JSONObject jsonObject = weChatPayUtil.pay(
+        /*JSONObject jsonObject = weChatPayUtil.pay(
                 ordersPaymentDTO.getOrderNumber(), //商户订单号
                 new BigDecimal(0.01), //支付金额，单位 元
                 "苍穹外卖订单", //商品描述
                 user.getOpenid() //微信用户的openid
-        );
+        );*/
+        //生成空jsonObject
+        JSONObject jsonObject = new JSONObject();
 
         if (jsonObject.getString("code") != null && jsonObject.getString("code").equals("ORDERPAID")) {
             throw new OrderBusinessException("该订单已支付");
