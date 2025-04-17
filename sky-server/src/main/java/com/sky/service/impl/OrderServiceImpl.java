@@ -260,4 +260,30 @@ public class OrderServiceImpl implements OrderService {
         orderMapper.update(orders);
     }
 
+    /**
+     * 再来一单（将原订单中的商品重新加入到购物车中）
+     * @param id
+     */
+    @Override
+    public void repetition(Long id) {
+        // 根据订单id查询订单详细表
+        List<OrderDetail> orderDetailList = orderDetailMapper.getByOrderId(id);
+
+        //把查到的订单详细表数据，复制到购物车表
+        for (OrderDetail orderDetail : orderDetailList) {
+            ShoppingCart shoppingCart = new ShoppingCart();
+            shoppingCart.setName(orderDetail.getName());
+            shoppingCart.setUserId(BaseContext.getCurrentId());
+            shoppingCart.setDishId(orderDetail.getDishId());
+            shoppingCart.setSetmealId(orderDetail.getSetmealId());
+            shoppingCart.setDishFlavor(orderDetail.getDishFlavor());
+            shoppingCart.setNumber(orderDetail.getNumber());
+            shoppingCart.setAmount(orderDetail.getAmount());
+            shoppingCart.setImage(orderDetail.getImage());
+            shoppingCart.setCreateTime(LocalDateTime.now());
+            shoppingCartMapper.insert(shoppingCart);
+        }
+
+    }
+
 }
