@@ -49,6 +49,7 @@
                 and status = #{status}
             </if>
         </where>
+        order by order_time desc
     </select>
 
 </mapper>
