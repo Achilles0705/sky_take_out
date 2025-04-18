@@ -31,11 +31,11 @@ public interface OrderService {
     void paySuccess(String outTradeNo);
 
     /**
-     * 分页查询订单
+     * 用户端分页查询
      * @param ordersPageQueryDTO
      * @return
      */
-    PageResult pageQuery(OrdersPageQueryDTO ordersPageQueryDTO);
+    PageResult pageQuery4User(OrdersPageQueryDTO ordersPageQueryDTO);
 
     /**
      * 根据id查询订单
@@ -55,4 +55,11 @@ public interface OrderService {
      * @param id
      */
     void repetition(Long id);
+
+    /**
+     * 管理端分页查询
+     * @param ordersPageQueryDTO
+     * @return
+     */
+    PageResult pageQuery4Admin(OrdersPageQueryDTO ordersPageQueryDTO);
 }
