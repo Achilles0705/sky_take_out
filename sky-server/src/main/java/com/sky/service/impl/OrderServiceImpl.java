@@ -90,9 +90,6 @@ public class OrderServiceImpl implements OrderService {
         orders.setAddress(addressBook.getDetail());
         //把微信小程序用户名设置到订单对象中
         orders.setUserName(userMapper.getById(userId).getName());
-        orders.setTablewareStatus(ordersSubmitDTO.getTablewareStatus());
-        orders.setTablewareNumber(ordersSubmitDTO.getTablewareNumber());
-        orders.setDeliveryStatus(ordersSubmitDTO.getDeliveryStatus());
 
         orderMapper.insert(orders);
 
@@ -467,6 +464,30 @@ public class OrderServiceImpl implements OrderService {
         Orders orders = Orders.builder()
                 .id(id)
                 .status(Orders.DELIVERY_IN_PROGRESS)
+                .build();
+
+        orderMapper.update(orders);
+    }
+
+    /**
+     * 完成订单
+     * @param id
+     */
+    @Override
+    public void complete(Long id) {
+        //根据id查询订单
+        Orders ordersDB = orderMapper.getById(id);
+
+        //校验订单是否存在，并且状态为4
+        if (ordersDB == null || !ordersDB.getStatus().equals(Orders.DELIVERY_IN_PROGRESS)) {
+            throw new OrderBusinessException(MessageConstant.ORDER_STATUS_ERROR);
+        }
+
+        //将需要修改的属性封装到orders中
+        Orders orders = Orders.builder()
+                .id(id)
+                .status(Orders.COMPLETED)
+                .deliveryTime(LocalDateTime.now())
                 .build();
 
         orderMapper.update(orders);
