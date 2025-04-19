@@ -382,18 +382,55 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public void rejection(OrdersRejectionDTO ordersRejectionDTO) throws Exception {
         //只有订单处于“待接单”状态时可以执行拒单操作
-        Orders orders = orderMapper.getById(ordersRejectionDTO.getId());
-        if (orders == null || !orders.getStatus().equals(Orders.TO_BE_CONFIRMED)) {
+        Orders orderDB = orderMapper.getById(ordersRejectionDTO.getId());
+        if (orderDB == null || !orderDB.getStatus().equals(Orders.TO_BE_CONFIRMED)) {
             throw new OrderBusinessException(MessageConstant.ORDER_STATUS_ERROR);
         }
 
-        //将订单状态修改为“已取消”
-        orders.setStatus(Orders.CANCELLED);
-        orders.setRejectionReason(ordersRejectionDTO.getRejectionReason());
-        orders.setCancelTime(LocalDateTime.now());
+        //将需要修改的属性封装到orders中
+        Orders orders = Orders.builder()
+                .id(ordersRejectionDTO.getId())
+                .status(Orders.CANCELLED)
+                .rejectionReason(ordersRejectionDTO.getRejectionReason())
+                .payStatus(Orders.REFUND)
+                .cancelTime(LocalDateTime.now())
+                .build();
 
         //如果用户已经完成了支付，需要为用户退款
-        if (orders.getPayStatus().equals(Orders.PAID)) {
+        if (orderDB.getPayStatus().equals(Orders.PAID)) {
+            //调用微信支付退款接口
+            /*weChatPayUtil.refund(
+                    orders.getNumber(), //商户订单号
+                    orders.getNumber(), //商户退款单号
+                    new BigDecimal(0.01),//退款金额，单位 元
+                    new BigDecimal(0.01));//原订单金额*/
+            log.info("为用户退款");
+
+            //支付状态修改为 退款
+            orders.setPayStatus(Orders.REFUND);
+        }
+
+        orderMapper.update(orders);
+    }
+
+    /**
+     * 取消订单
+     * @param ordersCancelDTO
+     */
+    @Override
+    public void cancel(OrdersCancelDTO ordersCancelDTO) {
+        Orders orderDB = orderMapper.getById(ordersCancelDTO.getId());
+
+        //将需要修改的属性封装到orders中
+        Orders orders = Orders.builder()
+                .id(ordersCancelDTO.getId())
+                .status(Orders.CANCELLED)
+                .cancelReason(ordersCancelDTO.getCancelReason())
+                .cancelTime(LocalDateTime.now())
+                .build();
+
+        //如果用户已经完成了支付，需要为用户退款
+        if (orderDB.getPayStatus().equals(Orders.PAID)) {
             //调用微信支付退款接口
             /*weChatPayUtil.refund(
                     orders.getNumber(), //商户订单号
