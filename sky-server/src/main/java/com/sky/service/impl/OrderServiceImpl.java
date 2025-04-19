@@ -381,9 +381,11 @@ public class OrderServiceImpl implements OrderService {
      */
     @Override
     public void rejection(OrdersRejectionDTO ordersRejectionDTO) throws Exception {
+        //根据id查询订单
+        Orders ordersDB = orderMapper.getById(ordersRejectionDTO.getId());
+
         //只有订单处于“待接单”状态时可以执行拒单操作
-        Orders orderDB = orderMapper.getById(ordersRejectionDTO.getId());
-        if (orderDB == null || !orderDB.getStatus().equals(Orders.TO_BE_CONFIRMED)) {
+        if (ordersDB == null || !ordersDB.getStatus().equals(Orders.TO_BE_CONFIRMED)) {
             throw new OrderBusinessException(MessageConstant.ORDER_STATUS_ERROR);
         }
 
@@ -397,7 +399,7 @@ public class OrderServiceImpl implements OrderService {
                 .build();
 
         //如果用户已经完成了支付，需要为用户退款
-        if (orderDB.getPayStatus().equals(Orders.PAID)) {
+        if (ordersDB.getPayStatus().equals(Orders.PAID)) {
             //调用微信支付退款接口
             /*weChatPayUtil.refund(
                     orders.getNumber(), //商户订单号
@@ -418,8 +420,9 @@ public class OrderServiceImpl implements OrderService {
      * @param ordersCancelDTO
      */
     @Override
-    public void cancel(OrdersCancelDTO ordersCancelDTO) {
-        Orders orderDB = orderMapper.getById(ordersCancelDTO.getId());
+    public void cancel(OrdersCancelDTO ordersCancelDTO) throws Exception {
+        //根据id查询订单
+        Orders ordersDB = orderMapper.getById(ordersCancelDTO.getId());
 
         //将需要修改的属性封装到orders中
         Orders orders = Orders.builder()
@@ -430,7 +433,7 @@ public class OrderServiceImpl implements OrderService {
                 .build();
 
         //如果用户已经完成了支付，需要为用户退款
-        if (orderDB.getPayStatus().equals(Orders.PAID)) {
+        if (ordersDB.getPayStatus().equals(Orders.PAID)) {
             //调用微信支付退款接口
             /*weChatPayUtil.refund(
                     orders.getNumber(), //商户订单号
@@ -442,6 +445,29 @@ public class OrderServiceImpl implements OrderService {
             //支付状态修改为 退款
             orders.setPayStatus(Orders.REFUND);
         }
+
+        orderMapper.update(orders);
+    }
+
+    /**
+     * 派送订单
+     * @param id
+     */
+    @Override
+    public void delivery(Long id) {
+        //根据id查询订单
+        Orders ordersDB = orderMapper.getById(id);
+
+        //校验订单是否存在，并且状态为3
+        if (ordersDB == null || !ordersDB.getStatus().equals(Orders.CONFIRMED)) {
+            throw new OrderBusinessException(MessageConstant.ORDER_STATUS_ERROR);
+        }
+
+        //将需要修改的属性封装到orders中
+        Orders orders = Orders.builder()
+                .id(id)
+                .status(Orders.DELIVERY_IN_PROGRESS)
+                .build();
 
         orderMapper.update(orders);
     }
