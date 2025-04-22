@@ -521,7 +521,7 @@ public class OrderServiceImpl implements OrderService {
      * @param address
      */
     private void checkOutOfRange(String address) {
-        Map map = new HashMap();
+        Map map = new HashMap<>();
         map.put("address", shopAddress);
         map.put("output", "json");
         map.put("ak", ak);
@@ -595,7 +595,7 @@ public class OrderServiceImpl implements OrderService {
         }
 
         //通过WebSocket向客户端浏览器推送消息
-        Map map = new HashMap();
+        Map map = new HashMap<>();
         map.put("type", 2); //2表示客户催单
         map.put("orderId", id);
         map.put("content", "订单号：" + ordersDB.getNumber());
